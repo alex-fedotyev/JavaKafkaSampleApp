@@ -1,0 +1,79 @@
+version: '2'
+services:
+  hipsreader-app:
+    image: pascalgrimaud/hipsreader
+    environment:
+      - _JAVA_OPTIONS=-Xmx512m -Xms256m
+      - 'SPRING_PROFILES_ACTIVE=prod,swagger'
+      - MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED=true
+      - 'SPRING_DATASOURCE_URL=jdbc:postgresql://hipsreader-postgresql:5432/HipsReader'
+      - JHIPSTER_SLEEP=30
+      - 'SPRING_KAFKA_CONSUMER_BOOTSTRAP_SERVERS=kafka:9092'
+      - 'SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS=kafka:9092'
+    ports:
+      - '8081:8081'
+    # Import Elastic APM agents configuration
+    env_file:
+      - ./elastic.env
+    # Make APM agents binaries available to the service
+    volumes:
+      - elasticagents:/opt/Elastic
+
+
+  hipsreader-postgresql:
+    image: 'postgres:11.2'
+    environment:
+      - POSTGRES_USER=HipsReader
+      - POSTGRES_PASSWORD=
+
+  hipswriter-app:
+    image: pascalgrimaud/hipswriter
+    environment:
+      - _JAVA_OPTIONS=-Xmx512m -Xms256m
+      - 'SPRING_PROFILES_ACTIVE=prod,swagger'
+      - MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED=true
+      - 'SPRING_DATASOURCE_URL=jdbc:mysql://hipswriter-mysql:3306/hipswriter?useUnicode=true&characterEncoding=utf8&useSSL=false'
+      - JHIPSTER_SLEEP=30
+      - 'SPRING_KAFKA_CONSUMER_BOOTSTRAP_SERVERS=kafka:9092'
+      - 'SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS=kafka:9092'
+    ports:
+      - '8080:8080'
+    # Import Elastic APM agents configuration
+    env_file:
+      - ./elastic.env
+    # Make APM agents binaries available to the service
+    volumes:
+      - elasticagents:/opt/Elastic
+
+
+  hipswriter-mysql:
+    image: 'mysql:8.0.15'
+    environment:
+      - MYSQL_USER=root
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_DATABASE=hipswriter
+    command: mysqld --lower_case_table_names=1 --skip-ssl --character_set_server=utf8mb4 --explicit_defaults_for_timestamp
+
+  zookeeper:
+    extends:
+      file: kafka.yml
+      service: zookeeper
+
+
+  kafka:
+    extends:
+      file: kafka.yml
+      service: kafka
+
+
+  elasticagent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - elasticagents:/opt/Elastic
+
+
+volumes:
+    elasticagents:
+
