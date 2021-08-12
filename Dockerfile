@@ -2,7 +2,7 @@
 FROM alpine:3.9 as JAVA
 WORKDIR /agent
 RUN apk --no-cache add curl
-RUN curl -L "http://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=co.elastic.apm&a=elastic-apm-agent&v=LATEST" -o elastic-apm-agent.jar
+RUN curl -L "https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=co.elastic.apm&a=elastic-apm-agent&v=LATEST" -o elastic-apm-agent.jar
 
 # Download latest node.js agent
 FROM node:8 as NODEJS
